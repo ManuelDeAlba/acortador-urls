@@ -5,6 +5,9 @@ export const GET: APIRoute = async () => {
     const urls = await prisma.url.findMany({
         include: {
             user: true
+        },
+        orderBy: {
+            visitCount: "desc"
         }
     });
 

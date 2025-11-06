@@ -4,25 +4,28 @@ import Layout from '@/layouts/Layout.astro';
 
 import { GET } from './api/urls';
 
-type UrlWithUser = Url & { user: User };
+export type UrlWithUser = Url & { user: User };
 
 const response = await GET(Astro);
 const urls: UrlWithUser[] = await response.json();
 ---
 
 <Layout>
-	<h1>Acortador de urls</h1>
-	<ul>
-		{
-			urls.map((url: UrlWithUser) => (
-				<li>
-					<h2>{url.user.name}</h2>
-					<p>Original: {url.original}</p>
-					<p>Corto: {url.short}</p>
-					<p>Visitas: {url.visitCount}</p>
-					<a href={`https://localhost:3000/${url.short}`}>Visitar</a>
-				</li>
-			))
-		}
-	</ul>
+	<main class="container mx-auto px-8">
+		<h1 class="text-3xl font-bold text-center my-8">Acortador de urls</h1>
+
+		<ul>
+			{
+				urls.map((url: UrlWithUser) => (
+					<li class="border border-gray-300 rounded-md p-4 mb-4">
+						<h2>{url.user.name}</h2>
+						<p>Original: {url.original}</p>
+						<p>Corto: {url.short}</p>
+						<p>Visitas: {url.visitCount}</p>
+						<a class="bg-sky-500 text-white px-4 py-2 rounded block w-max" target="_blank" href={`${Astro.url.origin}/s/${url.short}`}>Visitar</a>
+					</li>
+				))
+			}
+		</ul>
+	</main>
 </Layout>

@@ -1,0 +1,37 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { GET } from "@/pages/api/urls";
+import type { UrlWithUser } from "@/pages/index.astro";
+import prisma from "@/lib/prisma";
+
+export const prerender = false;
+
+const short = Astro.params.short;
+
+const response = await GET(Astro);
+const urls: UrlWithUser[] = await response.json();
+
+const url = urls.find((u) => u.short === short);
+if (url) {
+    await prisma.url.update({
+        where: { id: url.id },
+        data: {
+            visitCount: {
+                increment: 1
+            } 
+        }
+    });
+    return new Response(null, {
+        status: 301,
+        headers: {
+            "Location": url.original,
+            "Cache-Control": "public, max-age=30"
+        }
+    })
+}
+---
+
+<Layout>
+    <h1>Error 404</h1>
+    <p>Página no encontrada</p>
+</Layout>
