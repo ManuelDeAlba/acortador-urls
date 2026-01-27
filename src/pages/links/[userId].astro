@@ -1,0 +1,135 @@
+---
+import type { User, Url } from "@/prisma/generated/client";
+import Layout from '@/layouts/Layout.astro';
+
+import { UrlsGET } from '../api/urls';
+
+export type UrlWithUser = Url & { user: User };
+
+// Si la ruta coincide pero no es un id válido (número), muestra un error
+if(!/^\d+$/.test(Astro.params.userId!)){
+	return Astro.redirect("/not-found");
+}
+
+// Si es válido, obtiene los posts
+Astro.locals.userId = Number(Astro.params.userId);
+
+
+const response = await UrlsGET(Astro);
+console.log(response);
+if(!response.ok){
+	return new Response(null, { status: 401 });
+}
+const urls: UrlWithUser[] = await response.json();
+---
+
+<Layout>
+	<main class="container mx-auto px-8">
+		{
+			Astro.locals.authUserId === Number(Astro.params.userId) ? null : (
+				<p class="bg-red-600 text-white p-4 rounded-md mt-4 text-center">Estás viendo el panel de otro usuario. (ROL: {Astro.locals.rol})</p>
+			)
+		}
+
+		<h1 class="text-3xl font-bold text-center my-8">Acortador de urls</h1>
+
+		<button id="btn-modal" class="bg-gray-500 hover:bg-gray-600 cursor-pointer text-white px-4 py-2 rounded block w-max mb-8 ">Crear link</button>
+
+		<dialog id="modal-create-link" class="bg-gray-800 border border-gray-600 rounded-md p-6 w-[90%] max-w-md fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2  text-white">
+			<form id="form-create-link">
+				<input type="hidden" name="userId" value={Astro.params.userId}>
+
+				<h1 class="font-bold text-2xl">Crear link</h1>
+
+				<div class="flex flex-col gap-4 mt-4">
+					<label>
+						Original:
+						<input class="w-full bg-gray-600 outline-none px-4 py-2" type="text" name="original" placeholder="https://ejemplo.com">
+					</label>
+					<label class="flex flex-wrap items-center">
+						<span class="origin">https://acortador.com/s/</span>
+						<input class="bg-gray-600 outline-none px-4 py-2 max-w-full flex-1" type="text" name="short" placeholder="abc123">
+					</label>
+				</div>
+
+				<span id="error-message" class="text-red-500"></span>
+
+				<div class="flex flex-wrap gap-4 mt-8">
+					<button class="border-2 border-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded block w-max flex-1 cursor-pointer" type="button" id="btn-cancel">Cancelar</button>
+					<button class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded block w-max flex-1 cursor-pointer" type="submit">Aceptar</button>
+				</div>
+			</form>
+		</dialog>
+
+		<ul>
+			{
+				urls.map((url: UrlWithUser) => (
+					<li data-id={url.id} class="bg-gray-700 border border-gray-500 shadow-sm shadow-gray-700 inset-shadow-2xs inset-shadow-gray-600 rounded-md p-4 mb-4">
+						<div class="flex">
+							<h2 class="text-gray-200 font-bold">{url.user.name}</h2>
+							<span class="text-gray-400">&nbsp;- {url.user.email}</span>
+						</div>
+						<p>Original: {url.original}</p>
+						<p>Corto: {url.short}</p>
+						<p>Visitas: {url.visitCount}</p>
+						<div class="flex flex-wrap gap-4">
+							<a class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded block w-max mt-2" target="_blank" href={`${Astro.url.origin}/s/${url.short}`}>Visitar</a>
+							<button class="btn-borrar-link bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded block w-max mt-2 cursor-pointer">Eliminar</button>
+						</div>
+					</li>
+				))
+			}
+		</ul>
+	</main>
+</Layout>
+
+<script>
+	import { ActionInputError } from 'astro:actions';
+	import { actions } from 'astro:actions';
+
+	const dialog = document.getElementById('modal-create-link') as HTMLDialogElement;
+	const openModalButton = document.querySelector('#btn-modal') as HTMLButtonElement;
+	const cancelButton = document.querySelector('#btn-cancel') as HTMLButtonElement;
+	const formCreateLink = document.getElementById('form-create-link') as HTMLFormElement;
+	const errorMessage = document.getElementById('error-message') as HTMLSpanElement;
+
+	openModalButton?.addEventListener('click', () => {
+		dialog.showModal();
+	});
+
+	cancelButton?.addEventListener('click', () => {
+		dialog.close();
+	});
+
+	formCreateLink.addEventListener('submit', async (e) => {
+		e.preventDefault();
+
+		const formData = new FormData(formCreateLink);
+		const { data, error } = await actions.createLink(formData);
+		if(error instanceof ActionInputError){
+			errorMessage.textContent = error?.issues[0].message;
+		} else if(error){
+			errorMessage.textContent = error.message;
+			return;
+		}
+		if(data){
+			window.location.reload();
+		}
+	})
+
+	document.addEventListener('click', async e => {
+		if(e.target instanceof HTMLButtonElement && e.target.classList.contains("btn-borrar-link")){
+			const li = e.target.closest("li");
+			const id = li?.dataset.id;
+			const success = await actions.deleteLink({ id: Number(id) });
+			if(success) return window.location.reload();
+		}
+	})
+
+	window.addEventListener("load", () => {
+		const origin = document.querySelector(".origin");
+		if(origin){
+			origin.textContent = `${location.origin}/s/`;
+		}
+	})
+</script>

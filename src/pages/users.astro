@@ -1,0 +1,35 @@
+---
+import type { User } from "@/prisma/generated/client";
+import { UsersGET } from "./api/users";
+import Layout from "@/layouts/Layout.astro";
+
+const response = await UsersGET(Astro);
+if(!response.ok){
+	return Astro.redirect("/not-found")
+}
+type UserWithoutSensitiveInfo = Omit<User, 'password' | 'role'> & { _count: { urls: number } };
+const users: UserWithoutSensitiveInfo[] = await response.json();
+---
+
+<Layout>
+	<main class="container mx-auto px-8">
+		<h1 class="text-3xl font-bold text-center my-8">Usuarios</h1>
+
+		<ul>
+			{
+				users.map((user: UserWithoutSensitiveInfo) => (
+					<li data-id={user.id} class="bg-gray-700 border border-gray-500 shadow-sm shadow-gray-700 inset-shadow-2xs inset-shadow-gray-600 rounded-md p-4 mb-4">
+						<div class="flex">
+							<h2 class="text-gray-200 font-bold">{user.name}</h2>
+							<span class="text-gray-400">&nbsp;- {user.email}</span>
+                            <span class="text-gray-400">&nbsp;- Links: {user._count.urls}</span>
+						</div>
+						<div class="flex flex-wrap gap-4">
+                            <a href={`/links/${user.id}`} class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded block w-max mt-2 cursor-pointer">Ver links</a>
+						</div>
+					</li>
+				))
+			}
+		</ul>
+	</main>
+</Layout>

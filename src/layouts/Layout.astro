@@ -1,5 +1,9 @@
 ---
 import '@/styles/global.css';
+import Toaster from '@/components/Toaster.astro';
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.cerrarSesion);
 ---
 
 <!doctype html>
@@ -8,10 +12,34 @@ import '@/styles/global.css';
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
 		<title>Acortador urls</title>
 	</head>
 	<body class="bg-gray-900 text-gray-100">
+		{
+			Astro.locals.authUserId && (
+				<div class="flex gap-4 p-4 items-center justify-end">
+					{
+						Astro.locals.rol === "ADMIN" && (
+							<a class="hover:underline underline-offset-2" href="/users">Usuarios</a>
+							<a href={`/links/${Astro.locals.authUserId}`}>Mis links</a>
+						)
+					}
+					<form method="POST" action={actions.cerrarSesion}>
+						<button class="bg-slate-600 hover:bg-slate-500 text-white px-4 py-2 rounded-md transition-colors cursor-pointer">Cerrar sesión</button>
+					</form>
+				</div>
+			)
+		}
+		<Toaster />
 		<slot />
 	</body>
 </html>
+
+<!-- Si se detecta un cierre de sesión, manda a login -->
+{
+	result?.data?.cerrada && (
+		<script>
+			window.location.href = "/login";
+		</script>
+	)
+}

@@ -1,17 +1,21 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
+import { defineConfig, envField } from 'astro/config';
 
 import tailwindcss from '@tailwindcss/vite';
 
-import node from '@astrojs/node';
+import netlify from '@astrojs/netlify';
 
 // https://astro.build/config
 export default defineConfig({
   output: 'server',
-  adapter: node({
-    mode: 'standalone',
-  }),
+  adapter: netlify(),
   vite: {
     plugins: [tailwindcss()],
+  },
+
+  env: {
+    schema: {
+      JWT_SECRET: envField.string({ context: "server", access:"secret", default: 'misecretojwt' }),
+    }
   },
 });

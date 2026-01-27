@@ -1,0 +1,46 @@
+<div class="toaster"></div>
+
+<style is:global>
+    .toaster {
+        position: fixed;
+        top: 0.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 0.5rem;
+        width: 90%;
+        max-width: 400px;
+        z-index: 1000;
+        transition: all 0.5s ease-in-out;
+    }
+    .toast-item{
+        transform: translateY(0);
+        transition: transform 0.5s ease-in-out;
+        
+        @starting-style{
+            transform: translateY(-120%);
+            transition: transform 0.5s ease-in-out, background-color 0s 0.5s ease-in-out, color 0s 0.5s ease-in-out;
+        }
+    }
+    .toast-item.cerrado{
+        transform: translateY(-120%);
+        transition: transform 0.5s ease-in-out, background-color 0s 0.5s ease-in-out, color 0s 0.5s ease-in-out;
+    }
+    .toast-item.toast-success{
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+    .toast-item.toast-error{
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+    .toast-item.toast-info{
+        background-color: #dbf0ff;
+        color: #1e3a8a;
+    }
+    .toast-item.toast-warning{
+        background-color: #fefcbf;
+        color: #92400e;
+    }
+</style>

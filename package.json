@@ -9,15 +9,20 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/node": "^9.5.0",
+    "@astrojs/netlify": "^6.6.4",
     "@prisma/client": "^6.19.0",
     "@prisma/extension-accelerate": "^2.0.2",
     "@tailwindcss/vite": "^4.1.17",
     "astro": "^5.15.3",
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.2.3",
+    "jsonwebtoken": "^9.0.2",
+    "path-to-regexp": "^8.3.0",
     "tailwindcss": "^4.1.17"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
     "prisma": "^6.19.0",
     "tsx": "^4.20.6"
   }

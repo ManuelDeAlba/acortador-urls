@@ -1,14 +1,15 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { GET } from "@/pages/api/urls";
-import type { UrlWithUser } from "@/pages/index.astro";
+import { UrlsGET } from "@/pages/api/urls";
+import type { UrlWithUser } from "@/pages/links/[userId].astro";
 import prisma from "@/lib/prisma";
+import FlechaIzquierda from "@/icons/FlechaIzquierda.astro";
 
 export const prerender = false;
 
 const short = Astro.params.short;
 
-const response = await GET(Astro);
+const response = await UrlsGET(Astro);
 const urls: UrlWithUser[] = await response.json();
 
 const url = urls.find((u) => u.short === short);
@@ -32,6 +33,12 @@ if (url) {
 ---
 
 <Layout>
-    <h1>Error 404</h1>
-    <p>Página no encontrada</p>
+    <section class="px-8 h-dvh mx-auto max-w-sm flex flex-col justify-center items-center gap-8 text-center">
+        <h1 class="text-4xl">Error 404</h1>
+        <p>Página no encontrada</p>
+        <a href="/login" class="hover:underline bg-blue-500 text-lg px-4 py-2 rounded-md transition-colors flex items-center gap-2">
+            Crea tus enlaces
+            <FlechaIzquierda class="rotate-180 size-6!" />
+        </a>
+    </section>
 </Layout>
