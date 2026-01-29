@@ -38,7 +38,7 @@ if(Astro.locals.authUserId){
     import { actions } from "astro:actions";
 
     const form = document.querySelector('#form') as HTMLFormElement;
-    const inputContrasena = document.querySelector('#inputContrasena') as HTMLInputElement;
+    const inputEmail = document.querySelector('#inputEmail') as HTMLInputElement;
 
     form.addEventListener('submit', async e => {
         e.preventDefault();
@@ -66,6 +66,6 @@ if(Astro.locals.authUserId){
     });
 
     window.addEventListener("load", () => {
-        inputContrasena.focus();
+        inputEmail.focus();
     })
 </script>
