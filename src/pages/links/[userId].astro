@@ -35,6 +35,17 @@ const urls: UrlWithUser[] = await response.json();
 
 		<button id="btn-modal" class="bg-gray-500 hover:bg-gray-600 cursor-pointer text-white px-4 py-2 rounded block w-max mb-8 ">Crear link</button>
 
+		<search class="flex flex-wrap justify-center items-center gap-4 mb-4">
+			<input id="searchLink" class="flex-1 border-2 border-slate-500 rounded-md px-4 py-2 placeholder:text-white/50 text-white/80 outline-0" type="text" placeholder="Buscar link">
+			<label>
+				Ordenar por
+				<select id="ordenarPor" class="border-2 border-slate-500 rounded-md px-4 py-2 outline-0">
+					<option class="bg-gray-700" value="vis_asc">Visitas (menor a mayor)</option>
+					<option class="bg-gray-700" value="vis_desc" selected>Visitas (mayor a menor)</option>
+				</select>
+			</label>
+		</search>
+
 		<dialog id="modal-create-link" class="bg-gray-800 border border-gray-600 rounded-md p-6 w-[90%] max-w-md fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2  text-white">
 			<form id="form-create-link">
 				<input type="hidden" name="userId" value={Astro.params.userId}>
@@ -61,10 +72,10 @@ const urls: UrlWithUser[] = await response.json();
 			</form>
 		</dialog>
 
-		<ul>
+		<ul class="flex flex-col">
 			{
 				urls.map((url: UrlWithUser) => (
-					<li data-id={url.id} class="bg-gray-700 border border-gray-500 shadow-sm shadow-gray-700 inset-shadow-2xs inset-shadow-gray-600 rounded-md p-4 mb-4">
+					<li data-original={url.original} data-short={url.short} data-visitcount={url.visitCount} data-id={url.id} class="link-card bg-gray-700 border border-gray-500 shadow-sm shadow-gray-700 inset-shadow-2xs inset-shadow-gray-600 rounded-md p-4 mb-4">
 						<div class="flex">
 							<h2 class="text-gray-200 font-bold">{url.user.name}</h2>
 							<span class="text-gray-400">&nbsp;- {url.user.email}</span>
@@ -86,12 +97,15 @@ const urls: UrlWithUser[] = await response.json();
 <script>
 	import { ActionInputError } from 'astro:actions';
 	import { actions } from 'astro:actions';
+	import { debounce } from '@/lib/debounce';
 
 	const dialog = document.getElementById('modal-create-link') as HTMLDialogElement;
 	const openModalButton = document.querySelector('#btn-modal') as HTMLButtonElement;
 	const cancelButton = document.querySelector('#btn-cancel') as HTMLButtonElement;
 	const formCreateLink = document.getElementById('form-create-link') as HTMLFormElement;
 	const errorMessage = document.getElementById('error-message') as HTMLSpanElement;
+	const searchLink = document.getElementById('searchLink') as HTMLInputElement;
+	const ordenarPor = document.getElementById('ordenarPor') as HTMLInputElement;
 
 	openModalButton?.addEventListener('click', () => {
 		dialog.showModal();
@@ -123,6 +137,35 @@ const urls: UrlWithUser[] = await response.json();
 			const id = li?.dataset.id;
 			const success = await actions.deleteLink({ id: Number(id) });
 			if(success) return window.location.reload();
+		}
+	})
+
+	const filtrarLinks = debounce((busqueda) => {
+		// Filtrar el desmadre
+		const links = [...document.querySelectorAll<HTMLLIElement>(".link-card")];
+		links.forEach((link) => {
+			link.classList.add("hidden");
+			if(link.dataset.original!.includes(busqueda) || link.dataset.short!.includes(busqueda) || busqueda.trim() == ""){
+				link.classList.remove("hidden");
+			}
+		})
+	}, 300)
+
+	searchLink.addEventListener("input", e => {
+		const busqueda = (e.target as HTMLInputElement).value || "";
+		filtrarLinks(busqueda);
+	})
+
+	ordenarPor.addEventListener('input', e => {
+		const links = [...document.querySelectorAll<HTMLLIElement>(".link-card")];
+		const value = (e.target as HTMLSelectElement).value;
+
+		if(value == "vis_asc"){
+			const ordenadosAsc = links.toSorted((a, b) => parseInt(a.dataset.visitcount!) - parseInt(b.dataset.visitcount!));
+			ordenadosAsc.forEach((link, index) => link.style.order = index.toString());
+		} else if (value == "vis_desc"){
+			const ordenadosDesc = links.toSorted((a, b) => parseInt(b.dataset.visitcount!) - parseInt(a.dataset.visitcount!));
+			ordenadosDesc.forEach((link, index) => link.style.order = index.toString());
 		}
 	})
 
