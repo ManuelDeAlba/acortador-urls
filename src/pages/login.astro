@@ -53,9 +53,11 @@ if(Astro.locals.authUserId){
 
         const { error, data } = await actions.iniciarSesion(formData);
         if(error){
+            const errores = JSON.parse(error.message.replace("Failed to validate: ", ""));
+            const mensajes = errores.map((e: any) => e.message).join(". ");
             return showToast({
                 elemento: element,
-                mensaje: error.message || "Error al iniciar sesión",
+                mensaje: mensajes || "Error al iniciar sesión",
                 tipo: "error"
             });
         }

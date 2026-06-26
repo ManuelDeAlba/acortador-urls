@@ -85,8 +85,8 @@ export const server = {
     iniciarSesion: defineAction({
         accept: "form",
         input: z.object({
-            email: z.string().email({ message: "El email es inválido" }),
-            contrasena: z.string(),
+            email: z.string({message: "El email es requerido"}).email({ message: "El email es inválido" }),
+            contrasena: z.string({message: "La contraseña es requerida"}),
         }),
         handler: async (input, context) => {
             try {
