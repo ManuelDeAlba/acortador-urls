@@ -101,7 +101,7 @@ const urls: UrlWithUser[] = await response.json();
 							<h2 class="text-gray-200 font-bold">{url.user.name}</h2>
 							<span class="text-gray-400">&nbsp;- {url.user.email}</span>
 						</div>
-						<p>Original: {url.original}</p>
+						<p class="wrap-break-word">Original: {url.original}</p>
 						<p>Corto: {url.short}</p>
 						<p>Visitas: {url.visitCount}</p>
 						<div class="flex flex-wrap gap-4">
