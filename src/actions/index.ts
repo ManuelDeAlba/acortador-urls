@@ -37,6 +37,31 @@ export const server = {
             }
         }
     }),
+    editLink: defineAction({
+        accept: "form",
+        input: z.object({
+            id: z.string(),
+            original: z.string({ message: "La url debe ser una cadena" }).url({ message: "La URL original es inválida" }),
+        }),
+        handler: async (input) => {
+            try {
+                const url = await prisma.url.update({
+                    where: {
+                        id: Number(input.id)
+                    },
+                    data: {
+                        original: input.original,
+                    }
+                })
+                return { url };
+            } catch (error: any) {
+                throw new ActionError({
+                    code: 'INTERNAL_SERVER_ERROR',
+                    message: 'Error al editar el enlace'
+                })
+            }
+        }
+    }),
     deleteLink: defineAction({
         input: z.object({
             id: z.number(),

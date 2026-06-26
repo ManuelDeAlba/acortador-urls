@@ -72,6 +72,27 @@ const urls: UrlWithUser[] = await response.json();
 			</form>
 		</dialog>
 
+		<dialog id="modal-editar-link" class="bg-gray-800 border border-gray-600 rounded-md p-6 w-[90%] max-w-md fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2  text-white">
+			<form id="form-editar-link">
+				<h1 class="font-bold text-2xl">Editar link</h1>
+
+				<div class="flex flex-col gap-4 mt-4">
+					<label>
+						Original:
+						<input id="input-edit-original" class="w-full bg-gray-600 outline-none px-4 py-2" type="text" name="original" placeholder="https://ejemplo.com">
+					</label>
+					<span class="origin">https://acortador.com/s/<span id="short-preview"></span></span>
+				</div>
+
+				<span id="error-message" class="text-red-500"></span>
+
+				<div class="flex flex-wrap gap-4 mt-8">
+					<button class="border-2 border-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded block w-max flex-1 cursor-pointer" type="button" id="btn-editar-cancel">Cancelar</button>
+					<button id="btn-editar-link" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded block w-max flex-1 cursor-pointer" type="submit">Editar</button>
+				</div>
+			</form>
+		</dialog>
+
 		<ul class="flex flex-col">
 			{
 				urls.map((url: UrlWithUser) => (
@@ -85,6 +106,7 @@ const urls: UrlWithUser[] = await response.json();
 						<p>Visitas: {url.visitCount}</p>
 						<div class="flex flex-wrap gap-4">
 							<a class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded block w-max mt-2" target="_blank" href={`${Astro.url.origin}/s/${url.short}`}>Visitar</a>
+							<button class="btn-abrir-editar-link bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded block w-max mt-2 cursor-pointer">Editar</button>
 							<button class="btn-borrar-link bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded block w-max mt-2 cursor-pointer">Eliminar</button>
 						</div>
 					</li>
@@ -100,9 +122,12 @@ const urls: UrlWithUser[] = await response.json();
 	import { debounce } from '@/lib/debounce';
 
 	const dialog = document.getElementById('modal-create-link') as HTMLDialogElement;
+	const dialogEditar = document.querySelector("#modal-editar-link") as HTMLDialogElement;
 	const openModalButton = document.querySelector('#btn-modal') as HTMLButtonElement;
 	const cancelButton = document.querySelector('#btn-cancel') as HTMLButtonElement;
+	const editarCancelButton = document.querySelector('#btn-editar-cancel') as HTMLButtonElement;
 	const formCreateLink = document.getElementById('form-create-link') as HTMLFormElement;
+	const formEditarLink = document.getElementById('form-editar-link') as HTMLFormElement;
 	const errorMessage = document.getElementById('error-message') as HTMLSpanElement;
 	const searchLink = document.getElementById('searchLink') as HTMLInputElement;
 	const ordenarPor = document.getElementById('ordenarPor') as HTMLInputElement;
@@ -113,6 +138,10 @@ const urls: UrlWithUser[] = await response.json();
 
 	cancelButton?.addEventListener('click', () => {
 		dialog.close();
+	});
+	
+	editarCancelButton?.addEventListener('click', () => {
+		dialogEditar.close();
 	});
 
 	formCreateLink.addEventListener('submit', async (e) => {
@@ -131,12 +160,51 @@ const urls: UrlWithUser[] = await response.json();
 		}
 	})
 
+	formEditarLink.addEventListener('submit', async (e) => {
+		e.preventDefault();
+
+		const formData = new FormData(formEditarLink);
+		const id = dialogEditar.dataset.id;
+		if(!id) return;
+
+		formData.append("id", id);
+
+		const { data, error } = await actions.editLink(formData);
+		if(error instanceof ActionInputError){
+			errorMessage.textContent = error?.issues[0].message;
+		} else if(error){
+			errorMessage.textContent = error.message;
+			return;
+		}
+		if(data){
+			window.location.reload();
+		}
+	})
+
 	document.addEventListener('click', async e => {
 		if(e.target instanceof HTMLButtonElement && e.target.classList.contains("btn-borrar-link")){
 			const li = e.target.closest("li");
 			const id = li?.dataset.id;
 			const success = await actions.deleteLink({ id: Number(id) });
 			if(success) return window.location.reload();
+		}
+
+		// Boton para abrir modal y cargar la información de ese link para editar
+		if(e.target instanceof HTMLButtonElement && e.target.classList.contains("btn-abrir-editar-link")){
+			const li = e.target.closest("li");
+			const id = li?.dataset.id;
+			const original = li?.dataset.original;
+			const short = li?.dataset.short;
+
+			// Llenar con los datos
+			const inputOriginal = document.getElementById("input-edit-original") as HTMLInputElement;
+			const shortPreview = document.getElementById("short-preview") as HTMLSpanElement;
+			dialogEditar.dataset.id = id || "";
+
+			inputOriginal.value = original || "";
+			shortPreview.textContent = short || "";
+			// Abrir modal
+			dialogEditar.showModal();
 		}
 	})
 
