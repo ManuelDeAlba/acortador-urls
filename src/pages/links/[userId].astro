@@ -16,7 +16,6 @@ Astro.locals.userId = Number(Astro.params.userId);
 
 
 const response = await UrlsGET(Astro);
-console.log(response);
 if(!response.ok){
 	return new Response(null, { status: 401 });
 }
@@ -117,8 +116,7 @@ const urls: UrlWithUser[] = await response.json();
 </Layout>
 
 <script>
-	import { ActionInputError } from 'astro:actions';
-	import { actions } from 'astro:actions';
+	import { actions, isInputError } from 'astro:actions';
 	import { debounce } from '@/lib/debounce';
 
 	const dialog = document.getElementById('modal-create-link') as HTMLDialogElement;
@@ -149,7 +147,7 @@ const urls: UrlWithUser[] = await response.json();
 
 		const formData = new FormData(formCreateLink);
 		const { data, error } = await actions.createLink(formData);
-		if(error instanceof ActionInputError){
+		if(isInputError(error)){
 			errorMessage.textContent = error?.issues[0].message;
 		} else if(error){
 			errorMessage.textContent = error.message;
@@ -170,7 +168,7 @@ const urls: UrlWithUser[] = await response.json();
 		formData.append("id", id);
 
 		const { data, error } = await actions.editLink(formData);
-		if(error instanceof ActionInputError){
+		if(isInputError(error)){
 			errorMessage.textContent = error?.issues[0].message;
 		} else if(error){
 			errorMessage.textContent = error.message;

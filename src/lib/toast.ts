@@ -20,7 +20,6 @@ export function showToast({ elemento, mensaje, duracion = 3000, tipo="success", 
     if(elemento){
         const prevTimeoutId = (elemento as any)._timeoutId;
         if (prevTimeoutId) {
-            console.log(prevTimeoutId);
             clearTimeout(prevTimeoutId);
         }
     }

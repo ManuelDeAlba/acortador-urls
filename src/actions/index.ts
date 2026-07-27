@@ -124,6 +124,12 @@ export const server = {
 
                 return { correcta: true };
             } catch (error: any) {
+                // Si el error ya está identificado arriba, mandarlo tal cual
+                if (error instanceof ActionError) {
+                    throw error;
+                }
+
+                // Si es otro tipo de error, mandar un mensaje genérico
                 throw new ActionError({
                     code: 'INTERNAL_SERVER_ERROR',
                     message: 'Error al iniciar sesión'
